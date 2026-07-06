@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../facecard/face_card_screen.dart';
+import '../../models/student_repository.dart';
 
 class QRScannerScreen extends StatefulWidget {
   const QRScannerScreen({super.key});
@@ -21,21 +23,40 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
     super.dispose();
   }
 
-  void _openFaceCard() {
+  /// Demo behavior: a real implementation would decode the QR payload
+  /// (e.g. a roll number) and look up the matching StudentEntry from
+  /// StudentRepository.instance.entries. For now this just opens the
+  /// most recently saved entry, if any.
+  Future<void> _openFaceCard() async {
     if (scanned) return;
-
     scanned = true;
+
+    final entries = StudentRepository.instance.entries;
+    if (entries.isEmpty) {
+      scanned = false;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("No saved students to show yet.")),
+      );
+      return;
+    }
+
+    final entry = entries.first;
+
+    // Load saved color
+    final prefs = await SharedPreferences.getInstance();
+    final int? colorValue = prefs.getInt('faceCardColor');
+    final Color bgColor = colorValue != null ? Color(colorValue) : const Color(0xff173A70);
+
+    if (!mounted) return;
 
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
         builder: (_) => FaceCardScreen(
-          mealName: "Lunch",
-          studentName: "Prashant Kumar",
-          rollNo: "ucsc24042",
-          isVeg: true,
-          backgroundColor: Colors.red,
-          imagePath: "assets/images/prashant.jpg",
+          studentName: entry.name,
+          rollNo: entry.rollNo,
+          imagePath: entry.imagePath,
+          backgroundColor: bgColor,
         ),
       ),
     );
@@ -87,9 +108,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
               children: [
                 MobileScanner(
                   controller: controller,
-                  onDetect: (capture) {
-                    _openFaceCard();
-                  },
+                  onDetect: (_) => _openFaceCard(),
                 ),
 
                 SizedBox(
@@ -99,16 +118,9 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
                     children: [
                       Positioned(top: 0, left: 0, child: _corner(true, true)),
                       Positioned(top: 0, right: 0, child: _corner(false, true)),
+                      Positioned(bottom: 0, left: 0, child: _corner(true, false)),
                       Positioned(
-                        bottom: 0,
-                        left: 0,
-                        child: _corner(true, false),
-                      ),
-                      Positioned(
-                        bottom: 0,
-                        right: 0,
-                        child: _corner(false, false),
-                      ),
+                          bottom: 0, right: 0, child: _corner(false, false)),
                     ],
                   ),
                 ),
@@ -137,7 +149,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
               });
             },
             child: Text(
-              "Flash: $flashOn",
+              "Flash: ${flashOn ? "ON" : "OFF"}",
               style: const TextStyle(fontSize: 18),
             ),
           ),
@@ -155,7 +167,10 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
               scanned = false;
               controller.start();
             },
-            child: const Text("resume", style: TextStyle(fontSize: 18)),
+            child: const Text(
+              "Resume",
+              style: TextStyle(fontSize: 18),
+            ),
           ),
 
           const SizedBox(height: 30),

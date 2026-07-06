@@ -19,7 +19,8 @@ class MealCard extends StatelessWidget {
     return Card(
       elevation: 8,
       shadowColor: Colors.black45,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       color: const Color(0xff203B70),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
@@ -52,12 +53,12 @@ class MealCard extends StatelessWidget {
 
             Text(
               "Taken $taken",
-              style: const TextStyle(color: Colors.white70, fontSize: 15),
+              style: const TextStyle(color: Colors.grey, fontSize: 12.5),
             ),
 
             Text(
               "Available $available",
-              style: const TextStyle(color: Colors.white70, fontSize: 15),
+              style: const TextStyle(color: Color(0xFFF5F5F5), fontSize: 15),
             ),
           ],
         ),

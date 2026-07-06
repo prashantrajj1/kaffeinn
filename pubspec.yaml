@@ -1,5 +1,5 @@
-name: kaffeinn
-description: "Kaffeinn Mess Management App"
+name: kaffienn
+description: "Kaffienn Mess Management App"
 
 publish_to: 'none'
 
@@ -8,34 +8,45 @@ version: 1.0.0+1
 environment:
   sdk: ^3.12.2
 
+
 dependencies:
   flutter:
     sdk: flutter
 
   cupertino_icons: ^1.0.8
-  google_fonts: ^6.3.3
+  google_fonts: ^8.1.0
+  shared_preferences: ^2.5.2
+  flutter_colorpicker: ^1.1.0
   path_provider: ^2.1.6
   http: ^1.6.0
   intl: ^0.20.2
   mobile_scanner: ^7.2.0
   qr_scanner_overlay: ^0.0.2
+  audioplayers: ^6.8.1
+  image_picker: ^1.1.2
+  path: ^1.9.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
 
   flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.4
 
 flutter:
   uses-material-design: true
 
   assets:
     - assets/images/
+    - assets/images2/
+    - assets/sounds/
 
-  # Fonts (we'll add later if needed)
-  # fonts:
-  #   - family: Poppins
-  #     fonts:
-  #       - asset: assets/fonts/Poppins-Regular.ttf
-  #       - asset: assets/fonts/Poppins-Bold.ttf
-  #         weight: 700
+  fonts:
+    - family: MaterialIcons
+      fonts:
+        - asset: assets/fonts/MaterialIcons-Regular.otf
+
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: "assets/icon.png"

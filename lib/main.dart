@@ -13,7 +13,7 @@ class KaffeinnApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Kaffeinn',
+      title: 'Kaffienn',
       theme: AppTheme.lightTheme,
       home: const SplashScreen(),
     );

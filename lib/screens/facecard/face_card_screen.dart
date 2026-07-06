@@ -1,30 +1,69 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:audioplayers/audioplayers.dart';
 
-class FaceCardScreen extends StatelessWidget {
-  final String mealName;
+class FaceCardScreen extends StatefulWidget {
   final String studentName;
   final String rollNo;
-  final bool isVeg;
   final Color backgroundColor;
   final String imagePath;
 
   const FaceCardScreen({
     super.key,
-    required this.mealName,
     required this.studentName,
     required this.rollNo,
-    required this.isVeg,
     required this.backgroundColor,
     required this.imagePath,
   });
 
   @override
+  State<FaceCardScreen> createState() => _FaceCardScreenState();
+}
+
+class _FaceCardScreenState extends State<FaceCardScreen> {
+  final AudioPlayer player = AudioPlayer();
+
+  @override
+  void initState() {
+    super.initState();
+    _playSuccessSound();
+  }
+
+  Future<void> _playSuccessSound() async {
+    await player.play(
+      AssetSource('sounds/beep.mp3'),
+    );
+  }
+
+  @override
+  void dispose() {
+    player.dispose();
+    super.dispose();
+  }
+
+  /// Determines the meal name based on the current time of day.
+  /// 5:00 AM - 10:59 AM -> Breakfast
+  /// 11:00 AM - 3:59 PM -> Lunch
+  /// otherwise           -> Dinner
+  String _getMealName(DateTime now) {
+    final hour = now.hour;
+    if (hour >= 5 && hour < 11) {
+      return "Breakfast";
+    } else if (hour >= 11 && hour < 16) {
+      return "Lunch";
+    } else {
+      return "Dinner";
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final now = DateTime.now();
+    final mealName = _getMealName(now);
 
     return Scaffold(
-      backgroundColor: backgroundColor,
+      backgroundColor: widget.backgroundColor,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -41,7 +80,10 @@ class FaceCardScreen extends StatelessWidget {
                     border: Border.all(color: Colors.white, width: 2),
                   ),
                   child: ClipRect(
-                    child: Image.asset(imagePath, fit: BoxFit.cover),
+                    child: Image.file(
+                      File(widget.imagePath),
+                      fit: BoxFit.cover,
+                    ),
                   ),
                 ),
 
@@ -54,19 +96,12 @@ class FaceCardScreen extends StatelessWidget {
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
                     color: Color(0xff66FFFF),
-                    shadows: [Shadow(color: Colors.black, blurRadius: 3)],
-                  ),
-                ),
-
-                const SizedBox(height: 8),
-
-                /// Veg / Non Veg
-                Text(
-                  isVeg ? "Veg" : "Non Veg",
-                  style: TextStyle(
-                    fontSize: 26,
-                    fontWeight: FontWeight.bold,
-                    color: isVeg ? Colors.yellow : Colors.white,
+                    shadows: [
+                      Shadow(
+                        color: Colors.black,
+                        blurRadius: 3,
+                      ),
+                    ],
                   ),
                 ),
 
@@ -74,7 +109,7 @@ class FaceCardScreen extends StatelessWidget {
 
                 /// Roll Number
                 Text(
-                  "Roll no. $rollNo",
+                  "Roll no. ${widget.rollNo}",
                   style: const TextStyle(
                     fontSize: 22,
                     color: Colors.yellow,
@@ -92,7 +127,12 @@ class FaceCardScreen extends StatelessWidget {
                     fontSize: 30,
                     fontWeight: FontWeight.bold,
                     color: Colors.lightBlueAccent,
-                    shadows: [Shadow(color: Colors.black, blurRadius: 3)],
+                    shadows: [
+                      Shadow(
+                        color: Colors.black,
+                        blurRadius: 3,
+                      ),
+                    ],
                   ),
                 ),
 
@@ -100,7 +140,7 @@ class FaceCardScreen extends StatelessWidget {
 
                 /// Student Name
                 Text(
-                  studentName,
+                  widget.studentName,
                   style: const TextStyle(
                     fontSize: 28,
                     color: Colors.white,
