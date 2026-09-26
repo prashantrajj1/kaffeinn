@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_colorpicker/flutter_colorpicker.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../../models/student_repository.dart';
+
+import '../../theme/app_theme.dart';
 import '../../widgets/meal_card.dart';
-import '../../widgets/app_drawer.dart';
-import '../scanner/qr_scanner_screen.dart';
+import '../../widgets/kaffeinn_bottom_nav.dart';
+import 'menu_screen.dart';
+import '../bookings/book_meal_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -14,211 +14,501 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  Color _selectedColor = const Color(0xff173A70);
+  int selectedIndex = 0;
 
-  @override
-  void initState() {
-    super.initState();
-    _loadSavedColor();
-  }
-
-  Future<void> _loadSavedColor() async {
-    final prefs = await SharedPreferences.getInstance();
-    final int? colorValue = prefs.getInt('faceCardColor');
-    if (colorValue != null) {
-      setState(() {
-        _selectedColor = Color(colorValue);
-      });
+  void _changeTab(int index) {
+    if (index == 0) {
+      // Already on Home
+      return;
     }
-  }
 
-  Future<void> _saveColor(Color color) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('faceCardColor', color.value);
-  }
-
-  void _showColorPicker() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Pick a color for Face Card'),
-          content: SingleChildScrollView(
-            child: BlockPicker(
-              pickerColor: _selectedColor,
-              onColorChanged: (Color color) {
-                setState(() => _selectedColor = color);
-              },
-            ),
-          ),
-          actions: <Widget>[
-            ElevatedButton(
-              child: const Text('Save'),
-              onPressed: () {
-                _saveColor(_selectedColor);
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("Color saved successfully!")),
-                );
-              },
-            ),
-          ],
-        );
-      },
-    );
+    if (index == 1) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const MenuScreen(),
+        ),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final student = StudentRepository.instance.entries.isNotEmpty
-        ? StudentRepository.instance.entries.first
-        : null;
-
     return Scaffold(
-      drawer: AppDrawer(
-        name: student?.name ?? "Prashant Kumar",
-        rollNo: student?.rollNo ?? "ucsc24042",
-        imagePath: student?.imagePath,
-      ),
-      backgroundColor: const Color(0xffC7DB1E),
+      backgroundColor: AppColors.background,
 
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-          child: Stack(
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  /// Menu Button
-                  Row(
+        child: Column(
+          children: [
+            // =========================================================
+            // TOP HEADER
+            // =========================================================
+            _topHeader(),
+
+            // =========================================================
+            // MAIN CONTENT
+            // =========================================================
+            Expanded(
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+
+                padding: const EdgeInsets.fromLTRB(
+                  20,
+                  0,
+                  20,
+                  30,
+                ),
+
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // =================================================
+                    // BALANCE CARD
+                    // =================================================
+                    _balanceCard(),
+
+                    const SizedBox(height: 28),
+
+                    // =================================================
+                    // MEAL OVERVIEW HEADING
+                    // =================================================
+                    _mealHeading(),
+
+                    const SizedBox(height: 18),
+
+                    // =================================================
+                    // MEAL CARDS
+                    // =================================================
+                    GridView.builder(
+                      shrinkWrap: true,
+
+                      physics:
+                          const NeverScrollableScrollPhysics(),
+
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+
+                        crossAxisSpacing: 15,
+
+                        mainAxisSpacing: 15,
+
+                        // FIX FOR OVERFLOW
+                        mainAxisExtent: 250,
+                      ),
+
+                      itemCount: 4,
+
+                      itemBuilder: (context, index) {
+                        switch (index) {
+                          case 0:
+                            return const MealCard(
+                              title: "Breakfast",
+                              taken: "1",
+                              available: "9",
+                              image:
+                                  "assets/images/breakfast.png",
+                            );
+
+                          case 1:
+                            return const MealCard(
+                              title: "Lunch",
+                              taken: "1",
+                              available: "9",
+                              image:
+                                  "assets/images/lunch.png",
+                            );
+
+                          case 2:
+                            return const MealCard(
+                              title: "Dinner",
+                              taken: "2",
+                              available: "8",
+                              image:
+                                  "assets/images/dinner.png",
+                            );
+
+                          case 3:
+                            return const MealCard(
+                              title: "Special Dinner",
+                              taken: "0",
+                              available: "10",
+                              image:
+                                  "assets/images/spldinner.png",
+                            );
+
+                          default:
+                            return const SizedBox();
+                        }
+                      },
+                    ),
+
+                    // Extra space so the last card doesn't
+                    // touch the bottom navigation.
+                    const SizedBox(height: 20),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+
+      // =============================================================
+      // BOTTOM NAVIGATION
+      // =============================================================
+      bottomNavigationBar: KaffeinnBottomNav(
+        selectedIndex: selectedIndex,
+        onItemSelected: _changeTab,
+      ),
+    );
+  }
+
+  // =================================================================
+  // TOP HEADER
+  // =================================================================
+
+  Widget _topHeader() {
+    return Container(
+      width: double.infinity,
+
+      padding: const EdgeInsets.fromLTRB(
+        34,
+        30,
+        25,
+        35,
+      ),
+
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            AppColors.wine,
+            AppColors.coral,
+          ],
+
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(55),
+          bottomRight: Radius.circular(55),
+        ),
+      ),
+
+      child: const Column(
+        crossAxisAlignment:
+            CrossAxisAlignment.start,
+
+        children: [
+          Text(
+            "Welcome Back 👋",
+            style: TextStyle(
+              color: Color(0xFFFFDDE1),
+              fontSize: 18,
+              fontWeight: FontWeight.w400,
+            ),
+          ),
+
+          SizedBox(height: 8),
+
+          Text(
+            "Sarbeswar",
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 38,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // =================================================================
+  // BALANCE CARD
+  // =================================================================
+
+  Widget _balanceCard() {
+    return Container(
+      width: double.infinity,
+
+      margin: const EdgeInsets.only(
+        top: 0,
+      ),
+
+      padding: const EdgeInsets.all(25),
+
+      decoration: BoxDecoration(
+        color: Colors.white,
+
+        borderRadius: BorderRadius.circular(35),
+
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 18,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+
+      child: Row(
+        crossAxisAlignment:
+            CrossAxisAlignment.center,
+
+        children: [
+          // =========================================================
+          // BALANCE
+          // =========================================================
+
+          Expanded(
+            child: Column(
+              crossAxisAlignment:
+                  CrossAxisAlignment.start,
+
+              children: [
+                // Topup Balance label
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(
+                    horizontal: 15,
+                    vertical: 8,
+                  ),
+
+                  decoration: BoxDecoration(
+                    color:
+                        const Color(0xFFFFEDEF),
+
+                    borderRadius:
+                        BorderRadius.circular(20),
+                  ),
+
+                  child: const Row(
+                    mainAxisSize:
+                        MainAxisSize.min,
+
                     children: [
-                      Builder(
-                        builder: (context) => IconButton(
-                          icon: const Icon(
-                            Icons.menu,
-                            size: 34,
-                            color: Colors.black87,
-                          ),
-                          onPressed: () {
-                            Scaffold.of(context).openDrawer();
-                          },
+                      Icon(
+                        Icons
+                            .account_balance_wallet_outlined,
+                        size: 17,
+                        color:
+                            AppColors.wine,
+                      ),
+
+                      SizedBox(width: 7),
+
+                      Text(
+                        "Topup Balance",
+                        style: TextStyle(
+                          color:
+                              AppColors.wine,
+                          fontWeight:
+                              FontWeight.bold,
+                          fontSize: 13,
                         ),
                       ),
                     ],
                   ),
+                ),
 
-                  const SizedBox(height: 70),
+                const SizedBox(height: 18),
 
-                  /// Balance
-                  const Text(
-                    "Topup Balance",
-                    style: TextStyle(
-                      fontSize: 21,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
+                const Text(
+                  "₹ 300.00",
+                  style: TextStyle(
+                    color: AppColors.wine,
+                    fontSize: 34,
+                    fontWeight: FontWeight.bold,
                   ),
+                ),
+              ],
+            ),
+          ),
 
-                  const SizedBox(height: 5),
+          const SizedBox(width: 10),
 
-                  const Text(
-                    "Rs 0",
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.red,
-                    ),
+          // =========================================================
+          // BOOK NOW BUTTON
+          // =========================================================
+
+          GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) =>
+                      const BookMealScreen(),
+                ),
+              );
+            },
+
+            child: Container(
+              width: 125,
+              height: 90,
+
+              decoration: BoxDecoration(
+                gradient:
+                    const LinearGradient(
+                  colors: [
+                    AppColors.wine,
+                    AppColors.coral,
+                  ],
+
+                  begin:
+                      Alignment.centerLeft,
+
+                  end:
+                      Alignment.centerRight,
+                ),
+
+                borderRadius:
+                    BorderRadius.circular(28),
+
+                boxShadow: [
+                  BoxShadow(
+                    color:
+                        AppColors.wine
+                            .withOpacity(0.18),
+
+                    blurRadius: 12,
+
+                    offset:
+                        const Offset(0, 5),
                   ),
-
-                  const SizedBox(height: 20),
-
-                  /// Meal Cards
-                  Expanded(
-                    child: GridView.count(
-                      physics: const NeverScrollableScrollPhysics(),
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 16,
-                      mainAxisSpacing: 16,
-                      childAspectRatio: 1.0,
-                      children: const [
-                        MealCard(
-                          title: "Breakfast",
-                          taken: "0",
-                          available: "15",
-                          image: "assets/images/breakfast.png",
-                        ),
-                        MealCard(
-                          title: "Lunch",
-                          taken: "5",
-                          available: "17",
-                          image: "assets/images/lunch.png",
-                        ),
-                        MealCard(
-                          title: "Dinner",
-                          taken: "0",
-                          available: "10",
-                          image: "assets/images/dinner.png",
-                        ),
-                        MealCard(
-                          title: "Spl. Dinner",
-                          taken: "0",
-                          available: "5",
-                          image: "assets/images/spldinner.png",
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 10),
-
-                  /// QR Scanner Button
-                  Center(
-                    child: FloatingActionButton(
-                      heroTag: "qr",
-                      backgroundColor: Colors.blue,
-                      foregroundColor: Colors.white,
-                      elevation: 8,
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                            const QRScannerScreen(),
-                          ),
-                        );
-                      },
-                      child: const Icon(
-                        Icons.qr_code_scanner,
-                        size: 30,
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 10),
                 ],
               ),
 
-              /// Top-up Button
-              Positioned(
-                top: 130,
-                right: 10,
-                child: FloatingActionButton(
-                  heroTag: "top",
-                  backgroundColor: Colors.blue,
-                  foregroundColor: Colors.white,
-                  elevation: 8,
-                  shape: const CircleBorder(),
-                  onPressed: _showColorPicker,
-                  child: const Icon(
-                    Icons.add,
-                    size: 30,
+              child: const Row(
+                mainAxisAlignment:
+                    MainAxisAlignment.center,
+
+                children: [
+                  CircleAvatar(
+                    radius: 20,
+
+                    backgroundColor:
+                        Color(0x55FFFFFF),
+
+                    child: Icon(
+                      Icons.add,
+                      color:
+                          Colors.white,
+                      size: 27,
+                    ),
                   ),
+
+                  SizedBox(width: 8),
+
+                  Column(
+                    mainAxisAlignment:
+                        MainAxisAlignment.center,
+
+                    crossAxisAlignment:
+                        CrossAxisAlignment.start,
+
+                    children: [
+                      Text(
+                        "BOOK",
+                        style:
+                            TextStyle(
+                          color:
+                              Colors.white70,
+                          fontSize: 12,
+                          letterSpacing: 2,
+                          fontWeight:
+                              FontWeight.w500,
+                        ),
+                      ),
+
+                      Text(
+                        "NOW",
+                        style:
+                            TextStyle(
+                          color:
+                              Colors.white,
+                          fontSize: 23,
+                          fontWeight:
+                              FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // =================================================================
+  // MEAL OVERVIEW HEADING
+  // =================================================================
+
+  Widget _mealHeading() {
+    return Row(
+      crossAxisAlignment:
+          CrossAxisAlignment.center,
+
+      children: [
+        const Expanded(
+          child: Text(
+            "Meal Overview",
+
+            style: TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
+              color: AppColors.text,
+            ),
+          ),
+        ),
+
+        const SizedBox(width: 8),
+
+        Container(
+          padding:
+              const EdgeInsets.symmetric(
+            horizontal: 15,
+            vertical: 10,
+          ),
+
+          decoration: BoxDecoration(
+            color: AppColors.wine,
+
+            borderRadius:
+                BorderRadius.circular(22),
+          ),
+
+          child: const Row(
+            mainAxisSize:
+                MainAxisSize.min,
+
+            children: [
+              Icon(
+                Icons.calendar_month,
+                size: 17,
+                color: Colors.white,
+              ),
+
+              SizedBox(width: 6),
+
+              Text(
+                "Today's Bookings",
+
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight:
+                      FontWeight.bold,
+                  fontSize: 12,
                 ),
               ),
             ],
           ),
         ),
-      ),
+      ],
     );
   }
 }

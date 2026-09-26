@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../dashboard/form_screen.dart';
 
-/// Hardcoded credentials. Change these to whatever you like.
-const String _validEmail = "usr69";
-const String _validPassword = "69";
+import '../../theme/app_theme.dart';
+import '../../widgets/kaffeinn_input.dart';
+import 'signup_screen.dart';
+import '../dashboard/dashboard_screen.dart';
+
+const String validEmail = "usr69";
+const String validPassword = "69";
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -14,31 +17,36 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
+
   bool hidePassword = true;
 
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
-
-  Future<void> _handleLogin() async {
+  Future<void> _login() async {
     final email = emailController.text.trim();
     final password = passwordController.text.trim();
 
-    if (email == _validEmail && password == _validPassword) {
+    if (email == validEmail && password == validPassword) {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('isLoggedIn', true);
+
+      await prefs.setBool(
+        'isLoggedIn',
+        true,
+      );
 
       if (!mounted) return;
+
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => const FormScreen(),
+          builder: (_) => const DashboardScreen(),
         ),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("Invalid email or password"),
-          backgroundColor: Colors.red,
+          backgroundColor: AppColors.wine,
         ),
       );
     }
@@ -54,123 +62,235 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFFFF8F8),
 
       body: SafeArea(
         child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 28),
-            child: Column(
-              children: [
-                const SizedBox(height: 40),
+          child: Column(
+            children: [
+              _header(),
 
-                Image.asset("assets/images2/logo.png", width: 200),
+              const SizedBox(height: 55),
 
-                const SizedBox(height: 25),
-
-                const Text(
-                  "Welcome Back!",
-                  style: TextStyle(
-                    fontSize: 34,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xff173A70),
-                  ),
+              Container(
+                margin: const EdgeInsets.symmetric(
+                  horizontal: 34,
                 ),
 
-                const SizedBox(height: 10),
-
-                const Text(
-                  "Login to continue",
-                  style: TextStyle(fontSize: 20, color: Colors.black54),
+                padding: const EdgeInsets.fromLTRB(
+                  38,
+                  45,
+                  38,
+                  40,
                 ),
 
-                const SizedBox(height: 45),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(35),
 
-                TextField(
-                  controller: emailController,
-                  keyboardType: TextInputType.emailAddress,
-                  decoration: InputDecoration(
-                    hintText: "Email",
-                    prefixIcon: const Icon(Icons.email),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(18),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.04),
+                      blurRadius: 20,
+                      offset: const Offset(0, 7),
                     ),
-                  ),
+                  ],
                 ),
 
-                const SizedBox(height: 22),
-
-                TextField(
-                  controller: passwordController,
-                  obscureText: hidePassword,
-                  decoration: InputDecoration(
-                    hintText: "Password",
-                    prefixIcon: const Icon(Icons.lock),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        hidePassword ? Icons.visibility_off : Icons.visibility,
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          hidePassword = !hidePassword;
-                        });
-                      },
+                child: Column(
+                  children: [
+                    KaffeinnInput(
+                      hint: "Enter your email",
+                      icon: Icons.email_outlined,
+                      controller: emailController,
+                      keyboardType:
+                          TextInputType.emailAddress,
                     ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(18),
-                    ),
-                  ),
-                ),
 
-                const SizedBox(height: 40),
+                    const SizedBox(height: 24),
 
-                SizedBox(
-                  width: 220,
-                  height: 60,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xff173A70),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(18),
+                    KaffeinnInput(
+                      hint: "Enter your password",
+                      icon: Icons.lock_outline,
+                      controller: passwordController,
+                      obscureText: hidePassword,
+
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          hidePassword
+                              ? Icons.visibility_off_outlined
+                              : Icons.visibility_outlined,
+                          color: AppColors.wine,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            hidePassword = !hidePassword;
+                          });
+                        },
                       ),
                     ),
-                    onPressed: _handleLogin,
-                    child: const Text(
-                      "Login",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
+
+                    const SizedBox(height: 12),
+
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: () {},
+                        child: const Text(
+                          "Forgot Password?",
+                          style: TextStyle(
+                            color: AppColors.wine,
+                            fontSize: 15,
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                ),
 
-                const SizedBox(height: 30),
+                    const SizedBox(height: 15),
 
-                TextButton(
-                  onPressed: () {
-                    // Registration Screen (we'll add later)
-                  },
-                  child: const Text(
-                    "Don't have an account? Sign Up",
-                    style: TextStyle(fontSize: 18, color: Color(0xff173A70)),
-                  ),
-                ),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 60,
+                      child: ElevatedButton(
+                        onPressed: _login,
 
-                TextButton(
-                  onPressed: () {
-                    // Forgot Password Screen (we'll add later)
-                  },
-                  child: const Text(
-                    "Forgot Password?",
-                    style: TextStyle(fontSize: 18, color: Color(0xff173A70)),
-                  ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.wine,
+                          foregroundColor: Colors.white,
+
+                          elevation: 5,
+
+                          shape: RoundedRectangleBorder(
+                            borderRadius:
+                                BorderRadius.circular(28),
+                          ),
+                        ),
+
+                        child: const Text(
+                          "Login",
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 30),
+
+                    RichText(
+                      text: TextSpan(
+                        style: const TextStyle(
+                          color: AppColors.wine,
+                          fontSize: 16,
+                        ),
+                        children: [
+                          const TextSpan(
+                            text:
+                                "Don't have an account? ",
+                          ),
+
+                          WidgetSpan(
+                            child: GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) =>
+                                        const SignupScreen(),
+                                  ),
+                                );
+                              },
+                              child: const Text(
+                                "Sign Up",
+                                style: TextStyle(
+                                  color: AppColors.wine,
+                                  fontWeight:
+                                      FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+
+              const SizedBox(height: 60),
+            ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _header() {
+    return Container(
+      width: double.infinity,
+      height: 520,
+
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            Color(0xFF971827),
+            Color(0xFFE85C6A),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(55),
+          bottomRight: Radius.circular(55),
+        ),
+      ),
+
+      child: Column(
+        children: [
+          const SizedBox(height: 85),
+
+          Container(
+            margin: const EdgeInsets.symmetric(
+              horizontal: 75,
+            ),
+
+            padding: const EdgeInsets.all(18),
+
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(35),
+            ),
+
+            child: Image.asset(
+              "assets/images/kaffeinn_logo.png",
+              height: 125,
+              fit: BoxFit.contain,
+            ),
+          ),
+
+          const SizedBox(height: 48),
+
+          const Text(
+            "Welcome Back 👋",
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 34,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+
+          const SizedBox(height: 15),
+
+          const Text(
+            "Login to continue your meal booking",
+            style: TextStyle(
+              color: Color(0xFFFFDDE1),
+              fontSize: 17,
+            ),
+          ),
+        ],
       ),
     );
   }

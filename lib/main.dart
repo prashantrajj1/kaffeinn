@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
+
 import 'theme/app_theme.dart';
 import 'screens/auth/splash_screen.dart';
 
 void main() {
-  runApp(const KaffeinnApp());
+  WidgetsFlutterBinding.ensureInitialized();
+
+  runApp(
+    const KaffeinnApp(),
+  );
 }
 
 class KaffeinnApp extends StatelessWidget {
@@ -13,8 +18,11 @@ class KaffeinnApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Kaffienn',
+
+      title: "Kaffeinn",
+
       theme: AppTheme.lightTheme,
+
       home: const SplashScreen(),
     );
   }
